@@ -1,0 +1,61 @@
+// System.out.println(myActions);
+
+    if ((getSharpness(myActions) == 0) && (getSharpness(opponentsActions) == 0)) {
+        return Action.SHARPEN;
+    }
+
+    final int rand = ThreadLocalRandom.current().nextInt(1, 101);
+
+// System.out.println(rand);
+
+    if((getSharpness(myActions)>=5) && (myActions.get(myActions.size() - 1) == Action.BLOCK))
+    {
+        return Action.POKE;
+    }
+
+    if ((getSharpness(opponentsActions) >= 5))
+    {
+        return Action.POKE;
+    }
+
+    if((rand<=55) && (getSharpness(opponentsActions)==0))
+    {
+        return Action.POKE;
+    }
+    else if(rand<=80)
+    {
+        return Action.BLOCK;
+    }
+    else if(rand<=100)
+    {
+        return Action.SHARPEN;
+    }
+
+    if(opponentsActions.isEmpty())
+    {
+        return Action.SHARPEN;
+    }
+
+    if (opponentsActions.get(opponentsActions.size() - 1) == Action.BLOCK)
+    {
+        return Action.BLOCK;
+    }
+
+    if ((getSharpness(myActions) != 0) && (opponentsActions.get(opponentsActions.size() - 1) == Action.BLOCK))
+    {
+        return Action.POKE;
+    }
+
+    if (getSharpness(myActions) < getSharpness(opponentsActions))
+    {
+        return Action.BLOCK;
+    }
+
+    if ((opponentsActions.get(opponentsActions.size() - 1) == Action.POKE)) {
+
+        return Action.SHARPEN;
+    }
+
+
+    return Action.POKE;
+}
