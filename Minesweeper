@@ -1,0 +1,225 @@
+package de.vkb.Minesweeper_neu;
+
+import java.util.InputMismatchException;
+import java.util.Random;
+import java.util.Scanner;
+
+public class Minesweeper_Feld {
+	private int height;
+	private int width;
+	private Feld field[][];
+
+	public Minesweeper_Feld(int width, int height) {
+		this.width = width;
+		this.height = height;
+		this.field = new Feld[width][height];
+	}
+
+	public int getNumberOfAdjacentBombs(int x, int y) {
+		int nrBombs = 0;
+
+		for (int i = x - 1; i <= x + 1; i++) {
+			for (int j = y - 1; j <= y + 1; j++) {
+				if (i >= 0 && i < width && j >= 0 && j < height
+						&& !(i == x && j == y)) {
+					if (field[i][j] == Feld.bombe
+							|| field[i][j] == Feld.flagge_bombe) {
+						nrBombs++;
+					}
+				}
+			}
+		}
+
+		/*
+		 * if (x > 0 && y > 0 && field[x-1][y-1] == true) { nrBombs++; } if (x >
+		 * 0 && y < (height - 1) && field[x-1][y+1] == true) { nrBombs++; } if
+		 * (x > 0 && field[x-1][y] == true) { nrBombs++; } if (y > 0 &&
+		 * field[x][y-1] == true) { nrBombs++; } if (y < (height - 1) &&
+		 * field[x][y+1] == true) { nrBombs++; } // if (field[x][y] == true) {
+		 * // nrBombs++; // } if (x < (width - 1) && y > 0 && field[x+1][y-1] ==
+		 * true) { nrBombs++; } if (x < (width - 1) && y < (height - 1) &&
+		 * field[x+1][y+1] == true) { nrBombs++; } if (x < (width - 1) &&
+		 * field[x+1][y] == true) { nrBombs++; }
+		 */
+		return nrBombs;
+	}
+
+	public int initializeBombs() {
+		Random r = new Random();
+
+		int bombs = 0;
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				int zahl = r.nextInt(100);
+				if (zahl > 70)
+				/* if (r.nextBoolean()) */{
+					field[x][y] = Feld.bombe;
+					bombs++;
+				} else {
+					field[x][y] = Feld.verdeckt_keine_bombe;
+				}
+			}
+		}
+		return bombs;
+	}
+
+	public void printField(int x, int y) {
+		if (field[x][y] == Feld.bombe) {
+			System.out.print("x");
+		} else {
+			int nb = getNumberOfAdjacentBombs(x, y);
+
+			if (nb == 0) {
+				System.out.print("0");
+			} else {
+				System.out.print(nb);
+			}
+		}
+	}
+
+	public void printForPlayer() {
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				if (field[x][y] == Feld.offen_keine_bombe) {
+					printField(x, y);
+				} else if (field[x][y] == Feld.flagge_bombe
+						|| field[x][y] == Feld.flagge_keine_bombe) {
+					System.out.print("f");
+				} else {
+					System.out.print(".");
+				}
+			}
+			System.out.println();
+		}
+	}
+
+	public void printWholeField() {
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				printField(x, y);
+			}
+			System.out.println();
+		}
+	}
+
+	public boolean istGewonnen() {
+		return Feld.bombe == null;
+	}
+
+	public static Coordinate parseCoordinate(String input) {
+		Scanner zahlen = new Scanner(input);
+
+		try {
+			int x = zahlen.nextInt();
+			int y = zahlen.nextInt();
+			return new Coordinate(x, y);
+		} catch (InputMismatchException exc) {
+			System.err.println("Falsche Eingabe!");
+			return null;
+		}
+
+	}
+
+	// public void interactiveFields(x, y) {
+	// /* import an active click library */
+
+	public static void main(String[] args) {
+		System.out.println("Welcome to Minesweeper, input size like \"3 3\"");
+		System.out.println("Tippen Sie ´ende´ um das Spiel zu beenden");
+		Scanner scanner = new Scanner(System.in);
+		int width = scanner.nextInt();
+		int height = scanner.nextInt();
+
+		System.out.println("Width: " + width);
+		System.out.println("Height: " + height);
+
+		Minesweeper_Feld msf = new Minesweeper_Feld(width, height);
+		int bombs = msf.initializeBombs();
+
+		boolean lost = false;
+		int offen_keine_bombe = 0;
+
+		do {
+			if (offen_keine_bombe + bombs == msf.height * msf.width) {
+				System.out.println("GEWONNEN!");
+				return;
+
+			}
+
+			System.out
+					.println("Bitte geben Sie Ihre Koordinaten ein. zB.: \"2 2\"");
+			System.out.println("zB.: \"f 2 2\" um eine Flagge zu setzen");
+			Scanner s = new Scanner(System.in);
+			String currentLine = s.nextLine();
+
+			if ("ende".equals(currentLine)) {
+				System.out.println("Das Spiel wurde beendet!");
+				return;
+			}
+
+			if (currentLine.startsWith("f")) {
+				String coordString = currentLine.substring(1);
+				Coordinate coord = parseCoordinate(coordString);
+				if (coord != null) {
+					if (msf.field[coord.getX() - 1][coord.getY() - 1] == Feld.flagge_bombe) {
+						msf.field[coord.getX() - 1][coord.getY() - 1] = Feld.bombe;
+					} else if (msf.field[coord.getX() - 1][coord.getY() - 1] == Feld.flagge_keine_bombe) {
+						msf.field[coord.getX() - 1][coord.getY() - 1] = Feld.verdeckt_keine_bombe;
+					} else if (msf.field[coord.getX() - 1][coord.getY() - 1] != Feld.bombe) {
+						msf.field[coord.getX() - 1][coord.getY() - 1] = Feld.flagge_keine_bombe;
+					} else {
+						msf.field[coord.getX() - 1][coord.getY() - 1] = Feld.flagge_bombe;
+					}
+					msf.printForPlayer();
+				}
+			} else {
+				Coordinate coord = parseCoordinate(currentLine);
+				if (coord != null) {
+					if (msf.field[coord.getX() - 1][coord.getY() - 1] == Feld.bombe) {
+						System.err.println("You lost");
+						lost = true;
+					} else {
+						msf.field[coord.getX() - 1][coord.getY() - 1] = Feld.offen_keine_bombe;
+						offen_keine_bombe++;
+						msf.printForPlayer();
+					}
+				}
+			}
+		} while (!lost);
+
+	}
+
+}
+
+________________________________________________________________________________________________________
+
+package de.vkb.Minesweeper_neu;
+
+public enum Feld {
+
+	bombe, verdeckt_keine_bombe, offen_keine_bombe, flagge_keine_bombe, flagge_bombe;
+}
+  
+________________________________________________________________________________________________________
+
+package de.vkb.Minesweeper_neu;
+
+public class Coordinate {
+
+	private final int x;
+	private final int y;
+	
+	public Coordinate(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
+	
+}
